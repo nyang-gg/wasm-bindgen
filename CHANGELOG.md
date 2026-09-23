@@ -5,6 +5,16 @@
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [0.2.129](https://github.com/wasm-bindgen/wasm-bindgen/compare/0.2.128...0.2.129)
+
+### Added
+
 * Added the `texture-compression-unaligned` variant to `GpuFeatureName`,
   matching the WebGPU specification.
   [#5335](https://github.com/wasm-bindgen/wasm-bindgen/pull/5335)
@@ -32,8 +42,6 @@
   (`debug_loc error`), and `DW_AT_high_pc` was re-encoded as variable-width
   `udata` (`compile unit size was incorrect`).
   [#5328](https://github.com/wasm-bindgen/wasm-bindgen/pull/5328)
-
-### Removed
 
 ## [0.2.128](https://github.com/wasm-bindgen/wasm-bindgen/compare/0.2.127...0.2.128)
 
