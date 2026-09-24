@@ -13,7 +13,10 @@ pub mod tys;
 // This gets changed whenever our schema changes.
 // At this time versions of wasm-bindgen and wasm-bindgen-cli are required to have the exact same
 // SCHEMA_VERSION in order to work together.
-pub const SCHEMA_VERSION: &str = "0.2.128";
+// nyang-gg fork: the schema differs from upstream 0.2.128 (StringEnum::variant_names), so it
+// must not reuse an upstream identity — an upstream CLI then rejects fork-built wasm instead of
+// silently emitting glue without the fork's changes.
+pub const SCHEMA_VERSION: &str = "0.2.128-nyang.1";
 
 #[macro_export]
 macro_rules! shared_api {
@@ -125,6 +128,9 @@ macro_rules! shared_api {
         struct StringEnum<'a> {
             name: &'a str,
             variant_values: Vec<&'a str>,
+            // Rust variant identifiers (unraw'd), parallel to `variant_values`; keys of
+            // the exported runtime object (`Hand.Left`).
+            variant_names: Vec<&'a str>,
             comments: Vec<&'a str>,
             generate_typescript: bool,
             private: bool,

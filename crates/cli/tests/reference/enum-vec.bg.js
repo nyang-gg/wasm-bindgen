@@ -1,4 +1,12 @@
 /**
+ * @enum {"walk" | "idle"}
+ */
+export const Anim = Object.freeze({
+    Walk: "walk",
+    Idle: "idle",
+});
+
+/**
  * @enum {0 | 1 | 2}
  */
 export const Color = Object.freeze({

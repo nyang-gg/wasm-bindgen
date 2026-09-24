@@ -419,12 +419,17 @@ fn shared_import_type<'a>(i: &'a ast::ImportType, intern: &'a Interner) -> Impor
     }
 }
 
-fn shared_import_enum<'a>(i: &'a ast::StringEnum, _intern: &'a Interner) -> StringEnum<'a> {
+fn shared_import_enum<'a>(i: &'a ast::StringEnum, intern: &'a Interner) -> StringEnum<'a> {
     StringEnum {
         name: &i.export_name,
         generate_typescript: i.generate_typescript,
         private: i.private,
         variant_values: i.variant_values.iter().map(|x| &**x).collect(),
+        variant_names: i
+            .variants
+            .iter()
+            .map(|v| intern.intern_str(&v.unraw().to_string()))
+            .collect(),
         comments: i.comments.iter().map(|s| &**s).collect(),
         js_namespace: i
             .js_namespace

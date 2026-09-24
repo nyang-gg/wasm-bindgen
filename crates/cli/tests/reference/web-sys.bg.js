@@ -1,4 +1,21 @@
 /**
+ * The `MediaSourceEnum` enum.
+ *
+ * *This API requires the following crate features to be activated: `MediaSourceEnum`*
+ * @enum {"camera" | "screen" | "application" | "window" | "browser" | "microphone" | "audioCapture" | "other"}
+ */
+export const MediaSourceEnum = Object.freeze({
+    Camera: "camera",
+    Screen: "screen",
+    Application: "application",
+    Window: "window",
+    Browser: "browser",
+    Microphone: "microphone",
+    AudioCapture: "audioCapture",
+    Other: "other",
+});
+
+/**
  * @returns {MediaSourceEnum}
  */
 export function get_media_source() {

@@ -6762,11 +6762,19 @@ addToLibrary({
             .map(|v| format!("\"{v}\""))
             .collect();
 
-        if string_enum.generate_typescript
-            && self
-                .typescript_refs
-                .contains(&TsReference::StringEnum(string_enum.name.clone()))
-        {
+        // Public string enums are exported like C-style enums: a frozen runtime object
+        // plus a TS `enum` declaration, which is both the type and the value
+        // (`Hand.Left`), so no separate type alias. Same "referenced by the public API"
+        // condition as the alias, so unused web-sys enums stay out; private enums and
+        // Emscripten output keep the plain type alias.
+        let referenced = self
+            .typescript_refs
+            .contains(&TsReference::StringEnum(string_enum.name.clone()));
+        let export_object = referenced
+            && !string_enum.private
+            && !matches!(self.config.mode, OutputMode::Emscripten);
+
+        if string_enum.generate_typescript && referenced && !export_object {
             let docs = format_doc_comments(&string_enum.comments, None);
             let type_expr = if variants.is_empty() {
                 "never".to_string()
@@ -6784,6 +6792,48 @@ addToLibrary({
             self.typescript.push_str(" = ");
             self.typescript.push_str(&type_expr);
             self.typescript.push_str(";\n");
+        }
+
+        if export_object {
+            let qualified_name = wasm_bindgen_shared::qualified_name(
+                string_enum.js_namespace.as_deref(),
+                &string_enum.name,
+            );
+            let identifier = self.get_or_create_identifier(&qualified_name);
+            let mut js_fields = String::new();
+            let mut ts_fields = String::new();
+            for (name, value) in string_enum
+                .variant_names
+                .iter()
+                .zip(&string_enum.variant_values)
+            {
+                js_fields.push_str(&format!("{name}: \"{value}\",\n"));
+                ts_fields.push_str(&format!("\n  {name} = \"{value}\","));
+            }
+            let ts_definition = if string_enum.generate_typescript {
+                format!("enum {identifier} {{{ts_fields}\n}}\n")
+            } else {
+                String::new()
+            };
+            // `@enum {"a" | "b"}` keeps the object type-checkable without the .d.ts,
+            // matching C-style enums.
+            let at_enum = format!("@enum {{{}}}", variants.join(" | "));
+            define_export(
+                &mut self.exports,
+                &string_enum.name,
+                string_enum.js_namespace.as_deref().unwrap_or_default(),
+                ExportEntry::Definition(ExportDefinition {
+                    identifier: identifier.clone(),
+                    comments: Some(format_doc_comments(&string_enum.comments, Some(at_enum))),
+                    definition: format!(
+                        "const {identifier} = Object.freeze({{\n{js_fields}}});\n"
+                    ),
+                    ts_definition,
+                    ts_comments: Some(format_doc_comments(&string_enum.comments, None)),
+                    private: false,
+                    parent_identifier: None,
+                }),
+            )?;
         }
 
         if self.used_string_enums.contains(&string_enum.name) {

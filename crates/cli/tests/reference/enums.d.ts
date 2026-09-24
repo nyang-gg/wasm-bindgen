@@ -1,10 +1,5 @@
 /* tslint:disable */
 /* eslint-disable */
-/**
- * The name of a color.
- */
-
-export type ColorName = "green" | "yellow" | "red";
 
 /**
  * A color.
@@ -22,6 +17,15 @@ export enum Color {
      * Red as a rose.
      */
     Red = 2,
+}
+
+/**
+ * The name of a color.
+ */
+export enum ColorName {
+    Green = "green",
+    Yellow = "yellow",
+    Red = "red",
 }
 
 export enum ImplicitDiscriminant {

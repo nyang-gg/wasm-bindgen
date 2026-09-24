@@ -1870,6 +1870,11 @@ impl<'a> Context<'a> {
                 .iter()
                 .map(|v| v.to_string())
                 .collect(),
+            variant_names: string_enum
+                .variant_names
+                .iter()
+                .map(|v| v.to_string())
+                .collect(),
             generate_typescript: string_enum.generate_typescript,
             private: string_enum.private,
             js_namespace: string_enum

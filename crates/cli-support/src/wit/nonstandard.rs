@@ -269,15 +269,15 @@ pub struct AuxStringEnum {
     pub comments: String,
     /// A list of variants values
     pub variant_values: Vec<String>,
+    /// Rust variant names, parallel to `variant_values`: keys of the exported
+    /// runtime object (`Enum.Variant`).
+    pub variant_names: Vec<String>,
     /// Whether typescript bindings should be generated for this enum.
     pub generate_typescript: bool,
     /// Whether to suppress the `export` keyword on the generated TS type
     /// alias.
     pub private: bool,
-    /// The namespace to export the enum through, if any
-    /// Note: Currently unused as string enums don't generate exports,
-    /// but kept for consistency and potential future use.
-    #[allow(dead_code)]
+    /// The namespace to export the runtime object through, if any.
     pub js_namespace: Option<Vec<String>>,
 }
 

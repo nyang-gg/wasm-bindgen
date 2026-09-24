@@ -1,4 +1,12 @@
 /**
+ * @enum {"espresso" | "crème"}
+ */
+export const Café = Object.freeze({
+    Espresso: "espresso",
+    Crème: "crème",
+});
+
+/**
  * @enum {1 | 2}
  */
 export const Größe = Object.freeze({

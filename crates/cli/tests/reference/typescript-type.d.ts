@@ -1,7 +1,10 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type Café = "espresso" | "crème";
+export enum Café {
+    Espresso = "espresso",
+    Crème = "crème",
+}
 
 export enum Größe {
     Klein = 1,

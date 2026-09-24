@@ -18,6 +18,16 @@ export const Color = Object.freeze({
 });
 
 /**
+ * The name of a color.
+ * @enum {"green" | "yellow" | "red"}
+ */
+export const ColorName = Object.freeze({
+    Green: "green",
+    Yellow: "yellow",
+    Red: "red",
+});
+
+/**
  * @enum {0 | 1 | 42 | 43}
  */
 export const ImplicitDiscriminant = Object.freeze({

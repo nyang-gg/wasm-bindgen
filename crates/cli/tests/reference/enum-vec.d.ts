@@ -1,7 +1,10 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type Anim = "walk" | "idle";
+export enum Anim {
+    Walk = "walk",
+    Idle = "idle",
+}
 
 export enum Color {
     Green = 0,
