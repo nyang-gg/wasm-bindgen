@@ -1,6 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 
+export type Anim = "walk" | "idle";
+
 export enum Color {
     Green = 0,
     Yellow = 1,
@@ -34,4 +36,8 @@ export function ns_err_vec_echo(values: ns__NsErr[]): ns__NsErr[];
 
 export function option_enum_vec_echo(values?: Color[] | null): Color[] | undefined;
 
+export function option_string_enum_vec_echo(values?: Anim[] | null): Anim[] | undefined;
+
 export function renamed_err_vec_echo(values: RenamedErr[]): RenamedErr[];
+
+export function string_enum_vec_echo(values: Anim[]): Anim[];

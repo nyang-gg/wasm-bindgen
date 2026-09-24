@@ -2229,6 +2229,12 @@ pub(crate) fn adapter2ts(
         AdapterType::Bool => dst.push_str("boolean"),
         AdapterType::Vector(kind) => match kind {
             VectorKind::NamedExternref(name) => {
+                // The element may be a string enum, whose type alias is only emitted when
+                // referenced. Recording a ref for a struct/C-style enum name is a no-op:
+                // `generate_string_enum` only looks up names of actual string enums.
+                if let Some(refs) = refs {
+                    refs.insert(TsReference::StringEnum(name.clone()));
+                }
                 let resolved = name_map.get(name).map(|s| s.as_str()).unwrap_or(name);
                 if is_valid_ident(resolved) {
                     dst.push_str(&format!("{resolved}[]"));

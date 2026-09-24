@@ -312,9 +312,14 @@ impl Descriptor {
             Descriptor::F32 => Some(VectorKind::F32),
             Descriptor::F64 => Some(VectorKind::F64),
             Descriptor::Externref => Some(VectorKind::Externref),
+            // String enums share the externref-array ABI of C-style enums: the Rust side
+            // converts each element to/from a JS string (see `StringEnum` codegen).
             Descriptor::NamedExternref(ref name)
             | Descriptor::RustStruct { ref name, .. }
-            | Descriptor::Enum { ref name, .. } => Some(VectorKind::NamedExternref(name.clone())),
+            | Descriptor::Enum { ref name, .. }
+            | Descriptor::StringEnum { ref name, .. } => {
+                Some(VectorKind::NamedExternref(name.clone()))
+            }
             _ => None,
         }
     }

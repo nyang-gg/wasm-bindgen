@@ -2028,6 +2028,53 @@ impl ToTokens for ast::StringEnum {
                     #wasm_bindgen::JsValue::from_str(val.to_str())
                 }
             }
+
+            // `Vec<StringEnum>` / `Box<[StringEnum]>`: elements cross as JS strings in a
+            // `Box<[JsValue]>`, mirroring C-style enums. Unknown strings in an incoming
+            // array throw ("array contains a value of the wrong type").
+            #[automatically_derived]
+            impl #wasm_bindgen::convert::TryFromJsValue for #enum_name {
+                fn try_from_js_value_ref(value: &#wasm_bindgen::JsValue) -> #wasm_bindgen::__rt::core::option::Option<Self> {
+                    Self::from_js_value(value)
+                }
+            }
+
+            #[automatically_derived]
+            impl #wasm_bindgen::describe::WasmDescribeVector for #enum_name {
+                fn describe_vector() {
+                    use #wasm_bindgen::describe::*;
+                    inform(VECTOR);
+                    <#enum_name as #wasm_bindgen::describe::WasmDescribe>::describe();
+                }
+            }
+
+            #[automatically_derived]
+            impl #wasm_bindgen::convert::VectorIntoWasmAbi for #enum_name {
+                type Abi = <
+                    #wasm_bindgen::__rt::alloc::boxed::Box<[#wasm_bindgen::JsValue]>
+                    as #wasm_bindgen::convert::IntoWasmAbi
+                >::Abi;
+
+                fn vector_into_abi(
+                    vector: #wasm_bindgen::__rt::alloc::boxed::Box<[#enum_name]>
+                ) -> Self::Abi {
+                    #wasm_bindgen::convert::js_value_vector_into_abi(vector)
+                }
+            }
+
+            #[automatically_derived]
+            impl #wasm_bindgen::convert::VectorFromWasmAbi for #enum_name {
+                type Abi = <
+                    #wasm_bindgen::__rt::alloc::boxed::Box<[#wasm_bindgen::JsValue]>
+                    as #wasm_bindgen::convert::FromWasmAbi
+                >::Abi;
+
+                unsafe fn vector_from_abi(
+                    js: Self::Abi
+                ) -> #wasm_bindgen::__rt::alloc::boxed::Box<[#enum_name]> {
+                    #wasm_bindgen::convert::js_value_vector_from_abi(js)
+                }
+            }
         })
         .to_tokens(tokens);
     }

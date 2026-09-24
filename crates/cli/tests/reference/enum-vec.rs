@@ -52,3 +52,21 @@ pub enum HiddenErr {
 pub fn hidden_err_vec_echo(values: Vec<HiddenErr>) -> Vec<HiddenErr> {
     values
 }
+
+// String enums in Vec (nyang-gg fork): previously failed to compile, since only
+// C-style enums had the vector impls. Elements cross as JS strings.
+#[wasm_bindgen]
+pub enum Anim {
+    Walk = "walk",
+    Idle = "idle",
+}
+
+#[wasm_bindgen]
+pub fn string_enum_vec_echo(values: Vec<Anim>) -> Vec<Anim> {
+    values
+}
+
+#[wasm_bindgen]
+pub fn option_string_enum_vec_echo(values: Option<Vec<Anim>>) -> Option<Vec<Anim>> {
+    values
+}
