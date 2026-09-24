@@ -65,7 +65,6 @@ pub enum Descriptor {
     },
     StringEnum {
         name: String,
-        invalid: u32,
         hole: u32,
     },
     DynamicUnion {
@@ -194,13 +193,10 @@ impl Descriptor {
             STRING_ENUM => {
                 let name = get_string(data);
                 let variant_count = get(data);
-                let invalid = variant_count;
+                // `variant_count` itself is the `__Invalid` index, which the JS glue no
+                // longer produces (unknown strings throw); `hole` encodes `None`.
                 let hole = variant_count + 1;
-                Descriptor::StringEnum {
-                    name,
-                    invalid,
-                    hole,
-                }
+                Descriptor::StringEnum { name, hole }
             }
             DYNAMIC_UNION => {
                 let name = get_string(data);

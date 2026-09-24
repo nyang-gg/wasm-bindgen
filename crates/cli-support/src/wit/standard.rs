@@ -184,12 +184,10 @@ pub enum Instruction {
     /// pops a string and pushes the enum variant as an `i32`
     StringEnumToWasm {
         name: String,
-        invalid: u32,
     },
 
     OptionStringEnumToWasm {
         name: String,
-        invalid: u32,
         hole: u32,
     },
 

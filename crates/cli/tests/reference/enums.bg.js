@@ -88,7 +88,7 @@ export function option_order(order) {
  * @returns {ColorName | undefined}
  */
 export function option_string_enum_echo(color) {
-    const ret = wasm.option_string_enum_echo(isLikeNone(color) ? 4 : ((__wbindgen_enum_ColorName.indexOf(color) + 1 || 4) - 1));
+    const ret = wasm.option_string_enum_echo(isLikeNone(color) ? 4 : (stringEnumIndex(__wbindgen_enum_ColorName, color, "ColorName")));
     return __wbindgen_enum_ColorName[ret];
 }
 export function __wbg___wbindgen_throw_5d9e815e6fdf150f(arg0, arg1) {
@@ -119,6 +119,15 @@ function getUint8ArrayMemory0() {
 
 function isLikeNone(x) {
     return x === undefined || x === null;
+}
+
+function stringEnumIndex(values, value, name) {
+    const index = values.indexOf(value);
+    if (index === -1) {
+        const shown = typeof value === 'string' ? `"${value}"` : String(value);
+        throw new TypeError(`${shown} is not a valid ${name}; expected one of ${values.map(v => `"${v}"`).join(', ')}`);
+    }
+    return index;
 }
 
 let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });

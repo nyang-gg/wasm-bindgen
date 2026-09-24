@@ -985,19 +985,12 @@ fn instruction(
         // e.g. ["a","b","c"][someIndex]
         format!("__wbindgen_enum_{name}[{index}]")
     }
-    fn string_enum_to_wasm(name: &str, invalid: u32, enum_val: &str) -> String {
-        // e.g. (["a","b","c"].indexOf(someEnumVal) + 1 || 4) - 1
-        //                                                 |
-        //                                           invalid + 1
+    fn string_enum_to_wasm(name: &str, enum_val: &str) -> String {
+        // e.g. stringEnumIndex(["a","b","c"], someEnumVal, "Name")
         //
-        // The idea is that `indexOf` returns -1 if someEnumVal is invalid,
-        // and with +1 we get 0 which is falsey, so we can use || to
-        // substitute invalid+1. Finally, we just do -1 to get the correct
-        // values for everything.
-        format!(
-            "(__wbindgen_enum_{name}.indexOf({enum_val}) + 1 || {invalid}) - 1",
-            invalid = invalid + 1
-        )
+        // Throws a TypeError for values outside the enum instead of passing the
+        // `invalid` index, so Rust never receives the hidden `__Invalid` variant.
+        format!("stringEnumIndex(__wbindgen_enum_{name}, {enum_val}, \"{name}\")")
     }
 
     fn int128_to_int64x2(val: &str) -> (String, String) {
@@ -1202,20 +1195,18 @@ fn instruction(
             js.push(wasm_to_string_enum(name, &index))
         }
 
-        Instruction::StringEnumToWasm { name, invalid } => {
+        Instruction::StringEnumToWasm { name } => {
             let enum_val = js.pop();
             js.cx.expose_string_enum(name);
-            js.push(string_enum_to_wasm(name, *invalid, &enum_val))
+            js.cx.expose_string_enum_index();
+            js.push(string_enum_to_wasm(name, &enum_val))
         }
 
-        Instruction::OptionStringEnumToWasm {
-            name,
-            invalid,
-            hole,
-        } => {
+        Instruction::OptionStringEnumToWasm { name, hole } => {
             let enum_val = js.pop();
             js.cx.expose_string_enum(name);
-            let enum_val_expr = string_enum_to_wasm(name, *invalid, &enum_val);
+            js.cx.expose_string_enum_index();
+            let enum_val_expr = string_enum_to_wasm(name, &enum_val);
             js.cx.expose_is_like_none();
 
             // e.g. isLikeNone(someEnumVal) ? 4 : (string_enum_to_wasm(someEnumVal))

@@ -131,12 +131,11 @@ impl InstructionBuilder<'_, '_> {
                     &[AdapterType::I32],
                 );
             },
-            Descriptor::StringEnum { name, invalid, .. } => {
+            Descriptor::StringEnum { name, .. } => {
                 self.instruction(
                     &[AdapterType::StringEnum(name.clone())],
                     Instruction::StringEnumToWasm {
                         name: name.clone(),
-                        invalid: *invalid,
                     },
                     &[AdapterType::I32],
                 );
@@ -379,16 +378,11 @@ impl InstructionBuilder<'_, '_> {
                     &[AdapterType::I32],
                 );
             }
-            Descriptor::StringEnum {
-                name,
-                invalid,
-                hole,
-            } => {
+            Descriptor::StringEnum { name, hole } => {
                 self.instruction(
                     &[AdapterType::StringEnum(name.clone()).option()],
                     Instruction::OptionStringEnumToWasm {
                         name: name.clone(),
-                        invalid: *invalid,
                         hole: *hole,
                     },
                     &[AdapterType::I32],

@@ -4167,6 +4167,29 @@ if (require('worker_threads').isMainThread) {{
         );
     }
 
+    /// Index of `value` in a string enum's variant table; throws on unknown values
+    /// instead of mapping them to the hidden `__Invalid` variant.
+    fn expose_string_enum_index(&mut self) {
+        self.intrinsic(
+            "string_enum_index".into(),
+            "stringEnumIndex".into(),
+            {
+                "
+            function stringEnumIndex(values, value, name) {
+                const index = values.indexOf(value);
+                if (index === -1) {
+                    const shown = typeof value === 'string' ? `\"${value}\"` : String(value);
+                    throw new TypeError(`${shown} is not a valid ${name}; expected one of ${values.map(v => `\"${v}\"`).join(', ')}`);
+                }
+                return index;
+            }
+            "
+                .into()
+            },
+            &[],
+        );
+    }
+
     fn expose_is_like_none(&mut self) {
         self.intrinsic(
             "is_like_none".into(),

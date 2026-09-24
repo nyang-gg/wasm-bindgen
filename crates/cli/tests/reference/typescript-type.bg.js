@@ -42,7 +42,7 @@ export function slice(a) {
  * @returns {Café}
  */
 export function take_cafe(c) {
-    const ret = wasm.take_cafe((__wbindgen_enum_Café.indexOf(c) + 1 || 3) - 1);
+    const ret = wasm.take_cafe(stringEnumIndex(__wbindgen_enum_Café, c, "Café"));
     return __wbindgen_enum_Café[ret];
 }
 
@@ -102,6 +102,15 @@ function passArrayJsValueToWasm0(array, malloc) {
     }
     WASM_VECTOR_LEN = array.length;
     return ptr;
+}
+
+function stringEnumIndex(values, value, name) {
+    const index = values.indexOf(value);
+    if (index === -1) {
+        const shown = typeof value === 'string' ? `"${value}"` : String(value);
+        throw new TypeError(`${shown} is not a valid ${name}; expected one of ${values.map(v => `"${v}"`).join(', ')}`);
+    }
+    return index;
 }
 
 let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
