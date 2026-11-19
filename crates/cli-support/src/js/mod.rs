@@ -1287,6 +1287,15 @@ impl<'a> Context<'a> {
         let setup_function_declaration;
         let mut sync_init_function = String::new();
         let declare_or_export;
+        // nyang: `{ load }` hands the default module URL to a synchronous loader, so a runtime
+        // whose `fetch` cannot read that URL (Node and `file:`) still starts from it, after a
+        // bundler rewrote it.
+        let load_option =
+            if matches!(self.config.mode, OutputMode::Web) && has_module_or_path_optional {
+                format!(" | {{ load: (url: URL) => SyncInitInput{memory_param}{stack_size} }}")
+            } else {
+                String::new()
+            };
         let init_sync_fn = format!(
             "\
             /**\n\
@@ -1298,7 +1307,7 @@ impl<'a> Context<'a> {
             *\n\
             * @returns {{InitOutput}}\n\
             */\n\
-            export function initSync(module: {{ module: SyncInitInput{memory_param}{stack_size} }} | SyncInitInput{memory_param}): InitOutput;\n\
+            export function initSync(module: {{ module: SyncInitInput{memory_param}{stack_size} }}{load_option} | SyncInitInput{memory_param}): InitOutput;\n\
             "
         );
 
@@ -1479,6 +1488,7 @@ export const __wbg_memory: WebAssembly.Memory;
         &self,
         needs_manual_start: bool,
         default_module_path: &str,
+        default_module_url: Option<&str>,
         has_memory: bool,
     ) -> String {
         let mut init_memviews = String::new();
@@ -1549,15 +1559,15 @@ export const __wbg_memory: WebAssembly.Memory;
             function initSync(module{init_memory_arg}) {{
                 if (wasm !== undefined) return wasm;
 
-                {init_stack_size}
+                {init_stack_size}{init_load}
                 if (module !== undefined) {{
                     if (Object.getPrototypeOf(module) === Object.prototype) {{
-                        ({{module{init_memory_arg}{init_stack_size_arg}}} = module)
+                        ({{module{init_memory_arg}{init_stack_size_arg}{init_load_arg}}} = module)
                     }} else {{
                         console.warn('using deprecated parameters for `initSync()`; pass a single object instead')
                     }}
                 }}
-
+{init_load_call}
                 const imports = __wbg_get_imports({init_memory_arg_alone});
                 if (!(module instanceof WebAssembly.Module)) {{
                     module = new WebAssembly.Module(module);
@@ -1626,6 +1636,25 @@ export const __wbg_memory: WebAssembly.Memory;
                 "memory"
             } else {
                 ""
+            },
+            init_load = if default_module_url.is_some() {
+                "let load;"
+            } else {
+                ""
+            },
+            init_load_arg = if default_module_url.is_some() {
+                ", load"
+            } else {
+                ""
+            },
+            init_load_call = match default_module_url {
+                Some(url) => format!(
+                    "                if (module === undefined && load !== undefined) {{
+                    module = load({url});
+                }}
+"
+                ),
+                None => String::new(),
             },
         )
     }
@@ -1888,17 +1917,33 @@ if (require('worker_threads').isMainThread) {{
                 self.generate_node_cjs_wasm_loading(module_name, needs_manual_start)
             }
             OutputMode::Web => {
-                let default_module_path = if self.config.omit_default_module_path {
-                    ""
-                } else {
-                    &format!(
-                        "if (module_or_path === undefined) {{
-                            module_or_path = new URL('{module_name}_bg.wasm', import.meta.url);
-                        }}"
-                    )
-                };
-                let mut loading =
-                    self.generate_web_loading(needs_manual_start, default_module_path, has_memory);
+                let (default_module_path, default_module_url) =
+                    if self.config.omit_default_module_path {
+                        ("", None)
+                    } else {
+                        (
+                            "if (module_or_path === undefined) {
+                            module_or_path = __wbg_default_module_url();
+                        }",
+                            Some("__wbg_default_module_url()"),
+                        )
+                    };
+                let mut loading = self.generate_web_loading(
+                    needs_manual_start,
+                    default_module_path,
+                    default_module_url,
+                    has_memory,
+                );
+                if default_module_url.is_some() {
+                    // A plain `new URL(literal, import.meta.url)`, so bundlers can rewrite it.
+                    loading.push_str(&format!(
+                        "
+            function __wbg_default_module_url() {{
+                return new URL('{module_name}_bg.wasm', import.meta.url);
+            }}
+            "
+                    ));
+                }
 
                 loading.push_str("\nexport { initSync, __wbg_init as default };");
 
@@ -1915,7 +1960,7 @@ if (require('worker_threads').isMainThread) {{
                         module_or_path = script_src.replace(/\.js$/, "_bg.wasm");
                     }"#
                 };
-                self.generate_web_loading(needs_manual_start, default_module_path, has_memory)
+                self.generate_web_loading(needs_manual_start, default_module_path, None, has_memory)
             }
         }
     }
@@ -6848,9 +6893,7 @@ addToLibrary({
                 ExportEntry::Definition(ExportDefinition {
                     identifier: identifier.clone(),
                     comments: Some(format_doc_comments(&string_enum.comments, Some(at_enum))),
-                    definition: format!(
-                        "const {identifier} = Object.freeze({{\n{js_fields}}});\n"
-                    ),
+                    definition: format!("const {identifier} = Object.freeze({{\n{js_fields}}});\n"),
                     ts_definition,
                     ts_comments: Some(format_doc_comments(&string_enum.comments, None)),
                     private: false,
