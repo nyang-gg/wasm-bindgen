@@ -4556,11 +4556,18 @@ if (require('worker_threads').isMainThread) {{
         } else {
             "__wbg_reinit_scheduled = false;"
         };
+        // nyang: `finalize` exports the start function as `__wbindgen_start` only when the module has
+        // one (`unstart_start_function`); it runs after this, so ask the module directly.
+        let start = if self.module.start.is_some() {
+            "wasm.__wbindgen_start();"
+        } else {
+            ""
+        };
         reset_statements.push(format!(
             "{abort_reset}
             wasmInstance = new WebAssembly.Instance(wasmModule, __wbg_get_imports());
             wasm = wasmInstance.exports;
-            wasm.__wbindgen_start();
+            {start}
             "
         ));
 
